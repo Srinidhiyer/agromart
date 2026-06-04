@@ -41,9 +41,15 @@ export default function OrdersList() {
   }
 
   const handleCancel = async (orderId) => {
+    const reason = window.prompt('Why are you cancelling this order? (Optional)')
+    if (reason === null) {
+      setConfirmCancel(null)
+      return // User clicked Cancel on the prompt
+    }
+
     setCancellingId(orderId)
     try {
-      await orderAPI.cancelOrder(orderId, 'Cancelled by customer')
+      await orderAPI.cancelOrder(orderId, reason || 'Cancelled by customer')
       toast.success('✅ Order cancelled successfully!')
       setConfirmCancel(null)
       setOrders((prev) =>

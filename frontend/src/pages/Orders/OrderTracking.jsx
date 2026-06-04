@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet'
 import { orderAPI } from '../../api/cartAPI'
 import { KARNATAKA_ZONES } from '../../context/LocationContext'
+import toast from 'react-hot-toast'
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const storeIcon = L.divIcon({
@@ -72,6 +73,7 @@ export default function OrderTracking() {
   const [etaSecs, setEtaSecs] = useState(180)
   const [demoStatus, setDemoStatus] = useState(null)
   const [countdown, setCountdown] = useState(null)
+  const [cancelling, setCancelling] = useState(false)
   const animRef = useRef(null)
   const startRef = useRef(null)
   const DURATION = 180000
@@ -187,6 +189,23 @@ export default function OrderTracking() {
       setOrder(data.order)
     } catch { }
     finally { setLoading(false) }
+  }
+
+  const handleCancel = async () => {
+    const reason = window.prompt('Why are you cancelling this order? (Optional)')
+    if (reason === null) return // User clicked Cancel on the prompt
+
+    setCancelling(true)
+    try {
+      await orderAPI.cancelOrder(order._id, reason || 'Cancelled by customer')
+      toast.success('✅ Order cancelled successfully!')
+      setOrder((prev) => ({ ...prev, status: 'cancelled' }))
+      setDemoStatus(null)
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Could not cancel order')
+    } finally {
+      setCancelling(false)
+    }
   }
 
   const formatEta = () => {
@@ -471,13 +490,24 @@ export default function OrderTracking() {
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-3">
-                <a href="tel:+917019205772" className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-green-200 text-green-700 font-semibold rounded-2xl text-sm dark:border-green-800 dark:text-green-400">
-                  📞 Call Support
-                </a>
-                <Link to="/orders" className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-dark-border text-gray-700 dark:text-gray-300 font-semibold rounded-2xl text-sm">
-                  ← All Orders
-                </Link>
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <a href="tel:+917019205772" className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-green-200 text-green-700 font-semibold rounded-2xl text-sm dark:border-green-800 dark:text-green-400">
+                    📞 Call Support
+                  </a>
+                  <Link to="/orders" className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-dark-border text-gray-700 dark:text-gray-300 font-semibold rounded-2xl text-sm">
+                    ← All Orders
+                  </Link>
+                </div>
+                {['pending', 'confirmed', 'packed'].includes(order.status) && (
+                  <button
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    className="w-full flex items-center justify-center gap-2 py-3 border-2 border-red-200 text-red-600 font-semibold rounded-2xl text-sm hover:bg-red-50 disabled:opacity-50"
+                  >
+                    {cancelling ? '⏳ Cancelling...' : '✕ Cancel Order'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
