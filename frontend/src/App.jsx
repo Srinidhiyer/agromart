@@ -27,6 +27,8 @@ const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const AdminProducts = lazy(() => import('./pages/Admin/AdminProducts'))
 const AdminOrders = lazy(() => import('./pages/Admin/AdminOrders'))
 const AdminUsers = lazy(() => import('./pages/Admin/AdminUsers'))
+const Login = lazy(() => import('./pages/Auth/Login'))
+const Register = lazy(() => import('./pages/Auth/Register'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -48,6 +50,8 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/:identifier" element={<ProductDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               {/* ── PROTECTED ROUTES — need login to buy ── */}
               <Route element={<ProtectedRoute />}>
